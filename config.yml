@@ -1,0 +1,25 @@
+logverbose: false
+logmax: 1024
+blacklist:
+    - 127.0.0.1
+    - localhost
+useblist: true
+fail2ban: true
+logina: 3
+rega: 5
+getmailremote: true
+sendmailremote: true
+wlist: []
+usewlist: false
+bannedun:
+    - guest
+    - server
+    - admin
+    - public
+    - send
+allownewuser: true
+maxusers: 0
+shkick: false
+adminpass: admin
+maxconnections: 500
+port: 5000
