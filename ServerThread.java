@@ -304,8 +304,7 @@ public class ServerThread extends Thread
                     case "SENDMAIL":
                         sc.useDelimiter("\\A");
                         send(SendMail.get(this.socket.getInetAddress(), sc.next()));
-                        close();
-                        return;
+                        break;
                     default:
                         send("false");
                         break;

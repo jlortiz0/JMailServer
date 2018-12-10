@@ -14,11 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.net.Socket;
 import java.time.Instant;
 import java.util.*;
 /**
@@ -28,12 +27,16 @@ import java.util.*;
 public class SendMail {
     public static String send(String usr, String s) {
         long unixTime = Instant.now().getEpochSecond();
+        String from;
         try {
-            String from = usr+"@"+InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {}
+            from = usr+"@"+InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return "host";
+        }
         Scanner sc = new Scanner(s);
+        String recptsRaw=sc.nextLine();
         String recpts[];
-        try (Scanner sf = new Scanner(sc.nextLine())) {
+        try (Scanner sf = new Scanner(recptsRaw)) {
             ArrayList<String> ls = new ArrayList<>(15);
             while (sf.hasNext()) {
                 ls.add(sf.next());
@@ -49,14 +52,41 @@ public class SendMail {
                 servers.put(a.split("@")[1], new ArrayList<String>());
             servers.get(a.split("@")[1]).add(a.split("@")[0]);
         }
-        return "true";
+        ArrayList<String> responses = new ArrayList(recpts.length);
+        try {
+            for (String a: servers.keySet()) {
+                Socket sock;
+                if (a.contains(":")) {
+                    sock = new Socket(a.split(":")[0], Integer.parseInt(a.split(":")[1]));
+                } else {
+                    sock = new Socket(a, 5000);
+                }
+                DataOutputStream output = new DataOutputStream(sock.getOutputStream());
+                DataInputStream input = new DataInputStream(sock.getInputStream());
+                for (String b: servers.get(a)) {
+                    output.writeUTF("SENDMAIL "+from+"\n"+unixTime+"\n"+b+"\n"+recptsRaw+"\n"+subject+"\n"+message);
+                    responses.add(input.readUTF());
+                    if (responses.contains("true")) {
+                        responses.remove("true");
+                    }
+                }
+                output.writeUTF("QUIT");
+                sock.close();
+            }
+        } catch (UnknownHostException e) {
+            responses.add("badHost");
+        } catch (IOException e) {
+            responses.add("io");
+        }
+        responses.trimToSize();
+        //TODO: add better handling
+        return responses.toString();
     }
     public static String get(InetAddress addr, String s) {
         if (!(Boolean)JMailServer.get("getmailremote")) {
             return "getmail";
         }
         Scanner sc = new Scanner(s);
-        sc.useDelimiter("\\A");
         String from = sc.nextLine();
         long date = sc.nextLong();
         String to = sc.nextLine();
@@ -69,14 +99,15 @@ public class SendMail {
             recpts = (String[])ls.toArray();
         }
         String subject = sc.nextLine();
+        sc.useDelimiter("\\A");
         String message = sc.next();
-        if (!(new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to.substring(0, to.indexOf("@")-1)).isDirectory())) {
+        if (!(new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to).isDirectory())) {
             return "user";
         }
-        if (new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to.substring(0, to.indexOf("@")-1)+"\\"+subject+" from "+from).exists()) {
-        return "exists";
+        if (new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to+"\\mail\\"+subject+" from "+from).exists()) {
+            return "exists";
         }
-        try (FileOutputStream f = new FileOutputStream(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to.substring(0, to.indexOf("@")-1)+"\\"+subject+" from "+from)) {
+        try (FileOutputStream f = new FileOutputStream(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to+"\\mail\\"+subject+" from "+from)) {
             f.write(("Date: "+Date.from(Instant.ofEpochSecond(date))).getBytes());
             f.write(("From: "+from).getBytes());
             f.write(("To: "+Arrays.toString(recpts)).getBytes());
