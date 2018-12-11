@@ -41,7 +41,7 @@ public class SendMail {
             while (sf.hasNext()) {
                 ls.add(sf.next());
             }
-            recpts = (String[])ls.toArray();
+            recpts = ls.toArray(new String[0]);
         }
         sc.useDelimiter("\\A");
         String subject = sc.nextLine();
@@ -53,8 +53,8 @@ public class SendMail {
             servers.get(a.split("@")[1]).add(a.split("@")[0]);
         }
         ArrayList<String> responses = new ArrayList(recpts.length);
-        try {
-            for (String a: servers.keySet()) {
+        for (String a: servers.keySet()) {
+            try {
                 Socket sock;
                 if (a.contains(":")) {
                     sock = new Socket(a.split(":")[0], Integer.parseInt(a.split(":")[1]));
@@ -65,22 +65,30 @@ public class SendMail {
                 DataInputStream input = new DataInputStream(sock.getInputStream());
                 for (String b: servers.get(a)) {
                     output.writeUTF("SENDMAIL "+from+"\n"+unixTime+"\n"+b+"\n"+recptsRaw+"\n"+subject+"\n"+message);
-                    responses.add(input.readUTF());
-                    if (responses.contains("true")) {
-                        responses.remove("true");
-                    }
+                    b = input.readUTF();
+                    if (b.equals("true"))
+                        continue;
+                    responses.add(a+": "+b);
+                    if (b.equals("getmail"))
+                        break;
                 }
                 output.writeUTF("QUIT");
+                output.close();
+                input.close();
                 sock.close();
+            } catch (UnknownHostException e) {
+                responses.add(a+": badHost");
+            } catch (IOException e) {
+                responses.add(a+": io");
             }
-        } catch (UnknownHostException e) {
-            responses.add("badHost");
-        } catch (IOException e) {
-            responses.add("io");
         }
         responses.trimToSize();
-        //TODO: add better handling
-        return responses.toString();
+        StringBuilder resp = new StringBuilder();
+        for (String a: responses) {
+            resp.append(a);
+            resp.append("\n");
+        }
+        return resp.toString();
     }
     public static String get(InetAddress addr, String s) {
         if (!(Boolean)JMailServer.get("getmailremote")) {
@@ -102,10 +110,10 @@ public class SendMail {
         sc.useDelimiter("\\A");
         String message = sc.next();
         if (!(new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to).isDirectory())) {
-            return "user";
+            return "user "+to;
         }
         if (new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to+"\\mail\\"+subject+" from "+from).exists()) {
-            return "exists";
+            return "exists "+to;
         }
         try (FileOutputStream f = new FileOutputStream(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to+"\\mail\\"+subject+" from "+from)) {
             f.write(("Date: "+Date.from(Instant.ofEpochSecond(date))).getBytes());
@@ -115,7 +123,7 @@ public class SendMail {
             f.write(("\n\n"+message).getBytes());
             f.flush();
         } catch (IOException e) {
-            return "write";
+            return "write "+to;
         }
         return "true";
     }

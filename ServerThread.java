@@ -101,12 +101,7 @@ public class ServerThread extends Thread
         Scanner sf;
         while (true) {
             sc = new Scanner(receive());
-            if ((rega>(Integer)JMailServer.get("rega") && rega>1) || (logina>(Integer)JMailServer.get("logina") && logina>1)) {
-                send("QUIT Too many login/registration attempts.");
-                close();
-                //TODO: add to temp blacklist
-                return;
-            } else if (loggedIn) {
+            if (loggedIn) {
                 switch (sc.next()) {
                     case "QUIT":
                         close();
@@ -232,14 +227,24 @@ public class ServerThread extends Thread
                         break;
                     case "REG":
                         if ((Boolean)JMailServer.get("allownewuser")==false) {
-                            send("false");
                             rega++;
+                            if (rega>(Integer)JMailServer.get("rega") && rega>1) {
+                                send("QUIT Too many registration attempts!");
+                                close();
+                                return;
+                            }
+                            send("false");
                             break;
                         }
                         usr = sc.next();
                         if (usr.contains("\\") || usr.contains("/") || usr.contains("..") || ((List)JMailServer.get("bannedun")).contains(usr) || new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr).isDirectory()) {
-                            send("false");
                             rega++;
+                            if (rega>(Integer)JMailServer.get("rega") && rega>1) {
+                                send("QUIT Too many registration attempts!");
+                                close();
+                                return;
+                            }
+                            send("false");
                             break;
                         }
                         pass = sc.next();
@@ -259,14 +264,24 @@ public class ServerThread extends Thread
                         break;
                     case "AUTH":
                         if (nonce==0) {
-                            send("false");
                             logina++;
+                            if (logina>(Integer)JMailServer.get("logina") && logina>1) {
+                                send("QUIT Too many login attempts!");
+                                close();
+                                return;
+                            }
+                            send("false");
                             break;
                         }
                         usr = sc.next();
                         if (usr.contains("\\") || usr.contains("/") || usr.contains("..") || !(new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr).isDirectory())) {
-                            send("false");
                             logina++;
+                            if (logina>(Integer)JMailServer.get("logina") && logina>1) {
+                                send("QUIT Too many login attempts!");
+                                close();
+                                return;
+                            }
+                            send("false");
                             break;
                         }
                         pass = sc.next();
@@ -274,12 +289,22 @@ public class ServerThread extends Thread
                             sf = new Scanner(new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr+"\\pass.txt"));
                         } catch (FileNotFoundException e) {
                             logina++;
+                            if (logina>(Integer)JMailServer.get("logina") && logina>1) {
+                                send("QUIT Too many login attempts!");
+                                close();
+                                return;
+                            }
                             send("false");
                             break;
                         }
                         if (!blake.hash(sf.nextLine(), String.valueOf(this.nonce)).equals(pass)) {
                             sf.close();
                             logina++;
+                            if (logina>(Integer)JMailServer.get("logina") && logina>1) {
+                                send("QUIT Too many login attempts!");
+                                close();
+                                return;
+                            }
                             send("false");
                             break;
                         }
