@@ -143,7 +143,8 @@ public class ServerThread extends Thread
                         }
                         break;
                     case "GET":
-                        filename = sc.next();
+                        filename = sc.nextLine().substring(1);
+                        System.out.println(cUser+"\\mail\\"+filename);
                         if (filename.contains("..")) {
                             send("false");
                             break;
@@ -171,6 +172,7 @@ public class ServerThread extends Thread
                         }
                         break;
                     case "PC":
+                        //TODO: Send user email telling them of sucessful (or unsucessful) passchange
                         pass = sc.next();
                         filename = sc.next();
                         try (Scanner file = new Scanner(new File(cUser+"\\pass.txt"))) {
