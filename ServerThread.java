@@ -42,6 +42,7 @@ public class ServerThread extends Thread
             dir.delete();
             return;
         }
+        //TODO: crashes
         for (File f: dir.listFiles()) {
             if (f.isDirectory()) {
                 delDir(f);
@@ -144,7 +145,6 @@ public class ServerThread extends Thread
                         break;
                     case "GET":
                         filename = sc.nextLine().substring(1);
-                        System.out.println(cUser+"\\mail\\"+filename);
                         if (filename.contains("..")) {
                             send("false");
                             break;

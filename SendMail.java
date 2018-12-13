@@ -58,6 +58,7 @@ public class SendMail {
                 Socket sock;
                 if (a.contains(":")) {
                     sock = new Socket(a.split(":")[0], Integer.parseInt(a.split(":")[1]));
+                    a=a.split(":")[0];
                 } else {
                     sock = new Socket(a, 5000);
                 }
@@ -95,22 +96,23 @@ public class SendMail {
             return "getmail";
         }
         Scanner sc = new Scanner(s);
-        String from = sc.nextLine();
+        String from = sc.nextLine().substring(1);
         long date = sc.nextLong();
+        sc.nextLine();
         String to = sc.nextLine();
-        String recpts[];
+        String recpts[]=new String[0];
         try (Scanner sf = new Scanner(sc.nextLine())) {
             ArrayList<String> ls = new ArrayList<>(15);
             while (sf.hasNext()) {
                 ls.add(sf.next());
             }
-            recpts = (String[])ls.toArray();
+            recpts = (String[])ls.toArray(recpts);
         }
         String subject = sc.nextLine();
         sc.useDelimiter("\\A");
         String message = sc.next();
         if (!(new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to).isDirectory())) {
-            return "user "+to;
+            return "User "+to;
         }
         if (new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to+"\\mail\\"+subject+" from "+from).exists()) {
             return "exists "+to;
@@ -123,7 +125,8 @@ public class SendMail {
             f.write(("\n\n"+message).getBytes());
             f.flush();
         } catch (IOException e) {
-            return "write "+to;
+            System.out.println(e);
+            return "write";
         }
         return "true";
     }

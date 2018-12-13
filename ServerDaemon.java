@@ -10,14 +10,14 @@ import java.util.HashMap;
 public class ServerDaemon
 {
     private static ServerSocket listener;
-    private static final HashMap<String, ServerThread> sockets = new HashMap<String, ServerThread>(60);
+    private static final HashMap<String, ServerThread> sockets = new HashMap<>((Integer)JMailServer.get("maxconnections"));
     public ServerDaemon(int port) throws IOException {
         listener = new ServerSocket(port);
     }
     public static void stop() throws IOException {
         listener.close();
     }
-    public static HashMap<String,ServerThread> getSockets() {
+    public static HashMap<String, ServerThread> getSockets() {
         return sockets;
     }
     public static void remove(String ip) {
@@ -30,16 +30,12 @@ public class ServerDaemon
                 while (Thread.activeCount()>(Integer)JMailServer.get("maxconnections"))
                     wait(1000);
                 Socket sock = listener.accept();
-                if (sockets.containsKey(sock.getInetAddress().getHostAddress())) {
-                    try (DataOutputStream closer = new DataOutputStream(sock.getOutputStream())) {
-                        closer.writeUTF("Already connected");
-                        closer.flush();
-                    }
-                    sock.close();
-                    continue;
-                }
+                //TODO: implement blacklist/whitelist
                 ServerThread runner = new ServerThread(sock);
-                sockets.put(sock.getInetAddress().getHostAddress(), runner);
+                //TODO: find better way to deal with same-connection issues
+                if (!sockets.containsKey(sock.getInetAddress().getHostAddress())) {
+                    sockets.put(sock.getInetAddress().getHostAddress(), runner);
+                }
                 runner.start();
             }
         } catch (InterruptedException | IOException e) {
