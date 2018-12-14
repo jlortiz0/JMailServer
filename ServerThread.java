@@ -38,11 +38,12 @@ public class ServerThread extends Thread
         return Base64.getEncoder().encodeToString(baos.toByteArray());
     }
     private static void delDir(File dir) {
+        if (!dir.exists())
+            return;
         if (dir.isFile()) {
             dir.delete();
             return;
         }
-        //TODO: crashes
         for (File f: dir.listFiles()) {
             if (f.isDirectory()) {
                 delDir(f);
@@ -91,6 +92,7 @@ public class ServerThread extends Thread
     
     @Override
     public void run() {
+        //TODO: Add exception handling so that it stops softlocking
         Scanner sc;
         boolean loggedIn = false;
         int rega = 0;
@@ -116,7 +118,7 @@ public class ServerThread extends Thread
                         send(String.valueOf(b));
                         break;
                     case "DEL":
-                        filename = sc.next();
+                        filename = sc.nextLine().substring(1);
                         if (filename.equals("..")) {
                             delDir(new File(cUser));
                             close();

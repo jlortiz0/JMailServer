@@ -119,14 +119,14 @@ public class SendMail {
         }
         try (FileOutputStream f = new FileOutputStream(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+to+"\\mail\\"+subject+" from "+from)) {
             f.write(("Date: "+Date.from(Instant.ofEpochSecond(date))).getBytes());
-            f.write(("From: "+from).getBytes());
-            f.write(("To: "+Arrays.toString(recpts)).getBytes());
-            f.write(("Subject: "+subject).getBytes());
+            f.write(("\nFrom: "+from).getBytes());
+            f.write(("\nTo: "+String.join(", ", recpts)).getBytes());
+            f.write(("\nSubject: "+subject).getBytes());
             f.write(("\n\n"+message).getBytes());
             f.flush();
         } catch (IOException e) {
             System.out.println(e);
-            return "write";
+            return "write "+to;
         }
         return "true";
     }
