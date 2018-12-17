@@ -1,8 +1,6 @@
 logverbose: false
 logmax: 1024
-blacklist:
-    - 127.0.0.1
-    - localhost
+blist: []
 useblist: true
 fail2ban: true
 logina: 3

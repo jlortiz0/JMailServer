@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author jlortiz
@@ -30,7 +31,23 @@ public class ServerDaemon
                 while (Thread.activeCount()>(Integer)JMailServer.get("maxconnections"))
                     wait(1000);
                 Socket sock = listener.accept();
-                //TODO: implement blacklist/whitelist
+                sock.getInetAddress().getHostName();
+                if ((Boolean)JMailServer.get("useblist")) {
+                    if (((List)JMailServer.get("blist")).contains(sock.getInetAddress().getHostName()) || ((List)JMailServer.get("blist")).contains(sock.getInetAddress().getHostAddress())) {
+                        new DataOutputStream(sock.getOutputStream()).writeUTF("QUIT Blacklisted!");
+                        sock.getOutputStream().flush();
+                        sock.close();
+                        continue;
+                    }
+                }
+                if ((Boolean)JMailServer.get("usewlist")) {
+                    if (!((List)JMailServer.get("wlist")).contains(sock.getInetAddress().getHostName()) || !((List)JMailServer.get("wlist")).contains(sock.getInetAddress().getHostAddress())) {
+                        new DataOutputStream(sock.getOutputStream()).writeUTF("QUIT Not whitelisted!");
+                        sock.getOutputStream().flush();
+                        sock.close();
+                        continue;
+                    }
+                }
                 ServerThread runner = new ServerThread(sock);
                 //TODO: find better way to deal with same-connection issues
                 if (!sockets.containsKey(sock.getInetAddress().getHostAddress())) {

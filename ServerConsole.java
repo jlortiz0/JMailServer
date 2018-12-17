@@ -63,7 +63,7 @@ public class ServerConsole extends Thread
                     JMailServer.set("useblist", !(Boolean)JMailServer.get("useblist"));
                     break;
                 case "wle":
-                    System.out.println("Whitlist is now "+String.valueOf(!(Boolean)JMailServer.get("usewlist")));
+                    System.out.println("Whitelist is now "+String.valueOf(!(Boolean)JMailServer.get("usewlist")));
                     JMailServer.set("usewlist", !(Boolean)JMailServer.get("usewlist"));
                     break;
                 case "cls":

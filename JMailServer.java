@@ -17,6 +17,7 @@
 
 import java.io.*;
 import java.util.Map;
+import java.util.List;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -55,6 +56,10 @@ public class JMailServer {
     }
     public static void reloadCfg() throws IOException {
         options = yml.load(new FileInputStream(new File(System.getProperty("user.home")+"\\Documents\\JMail\\config.yml")));
+        if ((Boolean)get("useblist") && ((List)get("blist")).size()==0)
+            set("useblist", false);
+        if ((Boolean)get("usewlist") && ((List)get("wlist")).size()==0)
+            set("usewlist", false);
     }
     private static void copy(InputStream in, FileOutputStream out) throws IOException {
         byte[] buffer = new byte[1024];
