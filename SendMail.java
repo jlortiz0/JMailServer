@@ -16,10 +16,13 @@
  */
 import java.io.*;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Scanner;
 /**
  *
  * @author jlortiz
@@ -117,7 +120,7 @@ public class SendMail {
             while (sf.hasNext()) {
                 ls.add(sf.next());
             }
-            recpts = (String[])ls.toArray(recpts);
+            recpts = ls.toArray(recpts);
         }
         String subject = sc.nextLine();
         sc.useDelimiter("\\A");
