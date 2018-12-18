@@ -14,9 +14,9 @@ import java.util.*;
  */
 public class ServerThread extends Thread
 {
-    private final Socket socket;
-    private final DataInputStream input;
-    private final DataOutputStream output;
+    protected final Socket socket;
+    protected final DataInputStream input;
+    protected final DataOutputStream output;
     private int nonce;
     private String cUser;
     
@@ -67,14 +67,14 @@ public class ServerThread extends Thread
             socket.close();
         } catch (IOException e) {}
     }
-    private void send(String msg) {
+    protected void send(String msg) {
         try {
             output.writeUTF(msg);
         } catch (IOException e) {
             System.out.println("Error sending data: "+e);
         }
     }
-    private String receive() {
+    protected String receive() {
         try {
             return input.readUTF();
         } catch (IOException e) {
@@ -82,7 +82,7 @@ public class ServerThread extends Thread
         }
         return "";
     }
-    private void flush() {
+    protected void flush() {
         try {
             output.flush();
         } catch (IOException e) {
@@ -102,6 +102,7 @@ public class ServerThread extends Thread
         String filename;
         boolean b;
         Scanner sf;
+        send("OK connect");
         while (true) {
             sc = new Scanner(receive());
             if (loggedIn) {
@@ -326,13 +327,6 @@ public class ServerThread extends Thread
                         break;
                     case "SOFT":
                         send("JMailServer Java 1.2 by jlortiz");
-                        break;
-                    case "HELO":
-                        send("OK connect");
-                        break;
-                    case "SENDMAIL":
-                        sc.useDelimiter("\\A");
-                        send(SendMail.get(this.socket.getInetAddress(), sc.next()));
                         break;
                     default:
                         send("false");

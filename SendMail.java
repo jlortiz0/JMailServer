@@ -64,8 +64,18 @@ public class SendMail {
                 }
                 DataOutputStream output = new DataOutputStream(sock.getOutputStream());
                 DataInputStream input = new DataInputStream(sock.getInputStream());
+                output.writeUTF("SEND");
+                output.flush();
+                while (input.available()<1)
+                    Thread.sleep(100);
+                if (!input.readUTF().equals("true")) {
+                    output.close();
+                    input.close();
+                    sock.close();
+                    continue;
+                }
                 for (String b: servers.get(a)) {
-                    output.writeUTF("SENDMAIL "+from+"\n"+unixTime+"\n"+b+"\n"+recptsRaw+"\n"+subject+"\n"+message);
+                    output.writeUTF(from+"\n"+unixTime+"\n"+b+"\n"+recptsRaw+"\n"+subject+"\n"+message);
                     b = input.readUTF();
                     if (b.equals("true"))
                         continue;
@@ -79,8 +89,9 @@ public class SendMail {
                 sock.close();
             } catch (UnknownHostException e) {
                 responses.add(a+": badHost");
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 responses.add(a+": io");
+                System.out.println("Sendmail IO error: "+e);
             }
         }
         responses.trimToSize();
