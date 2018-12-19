@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.HashSet;
 /**
  *
  * @author jlortiz
@@ -40,7 +41,7 @@ public class SendMail {
         String recptsRaw=sc.nextLine();
         String recpts[];
         try (Scanner sf = new Scanner(recptsRaw)) {
-            ArrayList<String> ls = new ArrayList<>(15);
+            HashSet<String> ls = new HashSet<>(15);
             while (sf.hasNext()) {
                 ls.add(sf.next());
             }
@@ -50,12 +51,16 @@ public class SendMail {
         String subject = sc.nextLine();
         String message = sc.next();
         HashMap<String,ArrayList<String>> servers = new HashMap<>();
+        ArrayList<String> responses = new ArrayList(recpts.length);
         for (String a: recpts) {
+            if (!a.contains("@")) {
+                responses.add("localhost: fmt  "+a);
+                continue;
+            }
             if (!servers.containsKey(a.split("@")[1]))
                 servers.put(a.split("@")[1], new ArrayList<String>());
             servers.get(a.split("@")[1]).add(a.split("@")[0]);
         }
-        ArrayList<String> responses = new ArrayList(recpts.length);
         for (String a: servers.keySet()) {
             try {
                 Socket sock;
@@ -106,11 +111,8 @@ public class SendMail {
         return resp.toString();
     }
     public static String get(InetAddress addr, String s) {
-        if (!(Boolean)JMailServer.get("getmailremote")) {
-            return "getmail";
-        }
         Scanner sc = new Scanner(s);
-        String from = sc.nextLine().substring(1);
+        String from = sc.nextLine();
         long date = sc.nextLong();
         sc.nextLine();
         String to = sc.nextLine();

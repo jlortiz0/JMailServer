@@ -201,6 +201,10 @@ public class ServerThread extends Thread
                         } catch (IOException e) {}
                         break;
                     case "DATA":
+                        if (!(Boolean)JMailServer.get("sendmailremote")) {
+                            send("sendmail");
+                            break;
+                        }
                         sc.useDelimiter("\\A");
                         send(SendMail.send(new File(cUser).getName(), sc.next()));
                         break;
@@ -231,7 +235,7 @@ public class ServerThread extends Thread
                         send(String.valueOf(b));
                         break;
                     case "REG":
-                        if ((Boolean)JMailServer.get("allownewuser")==false) {
+                        if (!(Boolean)JMailServer.get("allownewuser") || (new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\").list().length>(Integer)JMailServer.get("maxusers")) && (Integer)JMailServer.get("maxusers") > 1) {
                             rega++;
                             if (rega>(Integer)JMailServer.get("rega") && rega>1) {
                                 send("QUIT Too many registration attempts!");
@@ -242,7 +246,7 @@ public class ServerThread extends Thread
                             break;
                         }
                         usr = sc.next();
-                        if (usr.contains("\\") || usr.contains("/") || usr.contains("..") || ((List)JMailServer.get("bannedun")).contains(usr) || new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr).isDirectory()) {
+                        if (usr.contains("\\") || usr.contains("/") || usr.contains("..") || ((List)JMailServer.get("bannedun")).contains(usr.toLowerCase()) || new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr).isDirectory()) {
                             rega++;
                             if (rega>(Integer)JMailServer.get("rega") && rega>1) {
                                 send("QUIT Too many registration attempts!");
@@ -260,6 +264,7 @@ public class ServerThread extends Thread
                             out.print(pass);
                             out.close();
                             new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr+"\\mail").mkdir();
+                            SendMail.send("SERVER", usr+"@localhost\nWelcome to "+InetAddress.getLocalHost().getHostName()+"\n"+JMailServer.get("welcomemsg"));
                         } catch (IOException e) {
                             System.out.println(e);
                             send("false");

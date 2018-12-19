@@ -46,11 +46,6 @@ public class ServerConsole extends Thread
                         System.out.println("FATAL: The server will not stop! Will now crash!");
                         System.exit(1);
                     }
-                    if ((Boolean)JMailServer.get("shkick")) {
-                        ServerDaemon.getSockets().values().forEach((s) -> {
-                            s.close();
-                        });
-                    }
                     return;
                 case "connected":
                     ServerDaemon.getSockets().keySet().forEach((s) -> {

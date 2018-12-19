@@ -18,6 +18,7 @@
 import java.io.*;
 import java.util.Map;
 import java.util.List;
+import java.util.logging.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -27,6 +28,7 @@ import org.yaml.snakeyaml.Yaml;
 public class JMailServer {
     private static Map<String,Object> options;
     private static final Yaml yml = new Yaml();
+    public static final Logger log = Logger.getLogger("JMailServer");
     
     public static void main(String[] args) throws IOException {
         blake.hash("");
@@ -39,6 +41,11 @@ public class JMailServer {
             return;
         }
         reloadCfg();
+        if ((Boolean)JMailServer.get("logverbose"))
+            log.setLevel(java.util.logging.Level.INFO);
+        else
+            log.setLevel(java.util.logging.Level.WARNING);
+        log.addHandler(new LogHandler());
         ServerDaemon dmon = new ServerDaemon((Integer)get("port"));
         new ServerConsole().start();
         dmon.run();
@@ -70,4 +77,5 @@ public class JMailServer {
             out.write(buffer, 0, bytesRead);
         }
     }
+    //TODO: modify the files to use loggers
 }

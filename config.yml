@@ -1,6 +1,8 @@
 logverbose: false
 logmax: 1024
-blist: []
+blist:
+ - 127.0.0.1
+ - localhost
 useblist: true
 fail2ban: true
 logina: 3
@@ -21,3 +23,4 @@ shkick: false
 adminpass: admin
 maxconnections: 500
 port: 5000
+welcomemsg: Hello and welcome to our server. We hope that you will enjoy our services.
