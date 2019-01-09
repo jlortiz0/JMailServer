@@ -31,7 +31,7 @@ public class JMailServer {
     public static final Logger log = Logger.getLogger("JMailServer");
     
     public static void main(String[] args) throws IOException {
-        blake.hash("");
+        Blake.hash("");
         if (!new File(System.getProperty("user.home")+"\\Documents\\JMail\\config.yml").exists()) {
             new File(System.getProperty("user.home")+"\\Documents\\JMail").mkdir();
             new File(System.getProperty("user.home")+"\\Documents\\JMail\\users").mkdir();
@@ -42,13 +42,14 @@ public class JMailServer {
         }
         reloadCfg();
         if ((Boolean)JMailServer.get("logverbose"))
-            log.setLevel(java.util.logging.Level.INFO);
+            log.setLevel(java.util.logging.Level.FINE);
         else
-            log.setLevel(java.util.logging.Level.WARNING);
+            log.setLevel(java.util.logging.Level.INFO);
         log.addHandler(new LogHandler());
-        ServerDaemon dmon = new ServerDaemon((Integer)get("port"));
         new ServerConsole().start();
-        dmon.run();
+        new ServerDaemon((Integer)get("port")).run();
+        log.info("Server shutting down.");
+        log.getHandlers()[0].close();
     }
     public static Object get(String key) {
         return options.get(key);
@@ -59,6 +60,7 @@ public class JMailServer {
     public static void flush() throws IOException {
         try (FileWriter write = new FileWriter(System.getProperty("user.home")+"\\Documents\\JMail\\config.yml")) {
             yml.dump(options, write);
+            log.info("Config file flushed to disk.");
         }
     }
     public static void reloadCfg() throws IOException {
@@ -67,6 +69,7 @@ public class JMailServer {
             set("useblist", false);
         if ((Boolean)get("usewlist") && ((List)get("wlist")).size()==0)
             set("usewlist", false);
+        log.info("Config file reloaded.");
     }
     private static void copy(InputStream in, FileOutputStream out) throws IOException {
         byte[] buffer = new byte[1024];

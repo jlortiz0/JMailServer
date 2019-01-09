@@ -22,7 +22,7 @@ import java.security.NoSuchAlgorithmException;
  *
  * @author jlortiz
  */
-public class blake {
+public class Blake {
     public static String hash(String og, String salt) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -38,6 +38,7 @@ public class blake {
             }
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
+            JMailServer.log.severe("SHA-256 is not supported!");
             System.out.println("FATAL: SHA-256 is not supported on your system!");
             System.exit(1);
         }

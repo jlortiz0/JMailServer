@@ -27,6 +27,8 @@ public class ServerConsole extends Thread
                 }
                 if (pass.equals(JMailServer.get("adminpass")))
                     locked=false;
+                else 
+                    JMailServer.log.severe("Incorrect admin password given!");
                 continue;
             }
             System.out.print("> ");
@@ -44,6 +46,8 @@ public class ServerConsole extends Thread
                         ServerDaemon.stop();
                     } catch (IOException e) {
                         System.out.println("FATAL: The server will not stop! Will now crash!");
+                        JMailServer.log.severe(e.toString());
+                        JMailServer.log.severe("The server produced an exception while stopping! Will now crash.");
                         System.exit(1);
                     }
                     return;
@@ -70,7 +74,8 @@ public class ServerConsole extends Thread
                         JMailServer.reloadCfg();
                         System.out.println("Reloaded the config file. Note that not all changes will take place immediately.");
                     } catch (IOException e) {
-                        System.out.println("SEVERE: Reloading config failed! Server may crash.");
+                        JMailServer.log.severe("Reloading config file FAILED! Server is unstable!");
+                        System.out.println("SEVERE: Reloading config failed! Server is now unstable!");
                     }
                     break;
                 case "locfg":
@@ -81,6 +86,7 @@ public class ServerConsole extends Thread
                         JMailServer.flush();
                         System.out.println("Current config has been flushed to disk.");
                     } catch (IOException e) {
+                        JMailServer.log.severe("Saving config file failed! Corruption possible.");
                         System.out.println("ERROR: Saving config failed! Please check the config file for corruption.");
                     }
                     System.out.println("Updated config file was saved to disk.");

@@ -307,7 +307,7 @@ public class ServerThread extends Thread
                             send("false");
                             break;
                         }
-                        if (!blake.hash(sf.nextLine(), String.valueOf(this.nonce)).equals(pass)) {
+                        if (!Blake.hash(sf.nextLine(), String.valueOf(this.nonce)).equals(pass)) {
                             sf.close();
                             logina++;
                             if (logina>(Integer)JMailServer.get("logina") && logina>1) {

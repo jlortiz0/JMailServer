@@ -48,7 +48,10 @@ public class LogHandler extends Handler
             return;
         try {
             logFile.write(sdf.format(new Date()));
+            if (record.getLevel()!=java.util.logging.Level.INFO)
+                logFile.write(record.getLevel().getName()+": ");
             logFile.write(s);
+            this.flush();
             logFile.newLine();
         } catch (IOException e) {
             reportError(null, e, 1);
