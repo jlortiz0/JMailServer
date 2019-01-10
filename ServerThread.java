@@ -19,10 +19,7 @@ public class ServerThread extends Thread
     protected final DataOutputStream output;
     private int nonce;
     private String cUser;
-    
-    private static HashMap tree(String dir) {
-         return tree(new File(dir));
-    }
+
     private static HashMap<String,HashMap> tree(File fdir) {
         HashMap<String,HashMap> ls = new HashMap<>(fdir.list().length);
         for (File f: fdir.listFiles())
@@ -65,13 +62,19 @@ public class ServerThread extends Thread
             output.close();
             input.close();
             socket.close();
-        } catch (IOException e) {}
+        } catch (IOException e) {
+            JMailServer.log.warning(e.toString());
+            JMailServer.log.warning("Error on closing ServerThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
+        }
     }
+    //TODO: What should be done if there is a 
     protected void send(String msg) {
         try {
             output.writeUTF(msg);
         } catch (IOException e) {
             System.out.println("Error sending data: "+e);
+            JMailServer.log.warning(e.toString());
+            JMailServer.log.warning("Error sending data in SendMailThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
         }
     }
     protected String receive() {
@@ -79,6 +82,8 @@ public class ServerThread extends Thread
             return input.readUTF();
         } catch (IOException e) {
             System.out.println("Error getting data: "+e);
+            JMailServer.log.warning(e.toString());
+            JMailServer.log.warning("Error getting data in SendMailThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
         }
         return "";
     }
@@ -87,6 +92,8 @@ public class ServerThread extends Thread
             output.flush();
         } catch (IOException e) {
             System.out.println("Error flushing data: "+e);
+            JMailServer.log.warning(e.toString());
+            JMailServer.log.warning("Error flushing data in SendMailThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
         }
     }
     
@@ -141,7 +148,7 @@ public class ServerThread extends Thread
                         break;
                     case "TREE":
                         try {
-                            send(serialize(tree(cUser+"\\mail\\")));
+                            send(serialize(tree(new File(cUser+"\\mail\\"))));
                         } catch (IOException e) {
                             send("false");
                         }
@@ -237,7 +244,7 @@ public class ServerThread extends Thread
                     case "REG":
                         if (!(Boolean)JMailServer.get("allownewuser") || (new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\").list().length>(Integer)JMailServer.get("maxusers")) && (Integer)JMailServer.get("maxusers") > 1) {
                             rega++;
-                            if (rega>(Integer)JMailServer.get("rega") && rega>1) {
+                            if (rega>(Integer)JMailServer.get("rega") && (Integer)JMailServer.get("rega")>1) {
                                 send("QUIT Too many registration attempts!");
                                 close();
                                 return;
@@ -248,7 +255,7 @@ public class ServerThread extends Thread
                         usr = sc.next();
                         if (usr.contains("\\") || usr.contains("/") || usr.contains("..") || ((List)JMailServer.get("bannedun")).contains(usr.toLowerCase()) || new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr).isDirectory()) {
                             rega++;
-                            if (rega>(Integer)JMailServer.get("rega") && rega>1) {
+                            if (rega>(Integer)JMailServer.get("rega") && (Integer)JMailServer.get("rega")>1) {
                                 send("QUIT Too many registration attempts!");
                                 close();
                                 return;
@@ -275,7 +282,7 @@ public class ServerThread extends Thread
                     case "AUTH":
                         if (nonce==0) {
                             logina++;
-                            if (logina>(Integer)JMailServer.get("logina") && logina>1) {
+                            if (logina>(Integer)JMailServer.get("logina") && (Integer)JMailServer.get("logina")>1) {
                                 send("QUIT Too many login attempts!");
                                 close();
                                 return;
@@ -286,7 +293,7 @@ public class ServerThread extends Thread
                         usr = sc.next();
                         if (usr.contains("\\") || usr.contains("/") || usr.contains("..") || !(new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr).isDirectory())) {
                             logina++;
-                            if (logina>(Integer)JMailServer.get("logina") && logina>1) {
+                            if (logina>(Integer)JMailServer.get("logina") && (Integer)JMailServer.get("logina")>1) {
                                 send("QUIT Too many login attempts!");
                                 close();
                                 return;
@@ -299,7 +306,7 @@ public class ServerThread extends Thread
                             sf = new Scanner(new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr+"\\pass.txt"));
                         } catch (FileNotFoundException e) {
                             logina++;
-                            if (logina>(Integer)JMailServer.get("logina") && logina>1) {
+                            if (logina>(Integer)JMailServer.get("logina") && (Integer)JMailServer.get("logina")>1) {
                                 send("QUIT Too many login attempts!");
                                 close();
                                 return;
@@ -310,7 +317,7 @@ public class ServerThread extends Thread
                         if (!Blake.hash(sf.nextLine(), String.valueOf(this.nonce)).equals(pass)) {
                             sf.close();
                             logina++;
-                            if (logina>(Integer)JMailServer.get("logina") && logina>1) {
+                            if (logina>(Integer)JMailServer.get("logina") && (Integer)JMailServer.get("logina")>1) {
                                 send("QUIT Too many login attempts!");
                                 close();
                                 return;

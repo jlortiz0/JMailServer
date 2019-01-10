@@ -34,6 +34,7 @@ public class JMailServer {
         Blake.hash("");
         if (!new File(System.getProperty("user.home")+"\\Documents\\JMail\\config.yml").exists()) {
             new File(System.getProperty("user.home")+"\\Documents\\JMail").mkdir();
+            new File(System.getProperty("user.home")+"\\Documents\\JMail\\logs").mkdir();
             new File(System.getProperty("user.home")+"\\Documents\\JMail\\users").mkdir();
             new File(System.getProperty("user.home")+"\\Documents\\JMail\\config.yml").createNewFile();
             copy(JMailServer.class.getClassLoader().getResourceAsStream("config.yml"), new FileOutputStream(System.getProperty("user.home")+"\\Documents\\JMail\\config.yml"));

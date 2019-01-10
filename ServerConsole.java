@@ -60,10 +60,12 @@ public class ServerConsole extends Thread
                 case "ble":
                     System.out.println("Blacklist is now "+String.valueOf(!(Boolean)JMailServer.get("useblist")));
                     JMailServer.set("useblist", !(Boolean)JMailServer.get("useblist"));
+                    JMailServer.log.info("Blacklist "+ ((Boolean)JMailServer.get("useblist") ? "enabled" : "disabled"));
                     break;
                 case "wle":
                     System.out.println("Whitelist is now "+String.valueOf(!(Boolean)JMailServer.get("usewlist")));
                     JMailServer.set("usewlist", !(Boolean)JMailServer.get("usewlist"));
+                    JMailServer.log.info("Whitelist "+ ((Boolean)JMailServer.get("useblist") ? "enabled" : "disabled"));
                     break;
                 case "cls":
                 case "clear":
@@ -88,6 +90,7 @@ public class ServerConsole extends Thread
                     } catch (IOException e) {
                         JMailServer.log.severe("Saving config file failed! Corruption possible.");
                         System.out.println("ERROR: Saving config failed! Please check the config file for corruption.");
+                        break;
                     }
                     System.out.println("Updated config file was saved to disk.");
                     break;

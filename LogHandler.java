@@ -1,8 +1,6 @@
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -15,11 +13,13 @@ import java.util.Date;
 public class LogHandler extends Handler
 {
     private BufferedWriter logFile;
-    private SimpleDateFormat sdf = new SimpleDateFormat("[HH:mm:ss] ");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("[HH:mm:ss] ");
+    private String newFileName;
     public LogHandler() {
         super();
         try {
-            logFile = new BufferedWriter(new FileWriter(System.getProperty("user.home")+"\\Documents\\JMail\\log.log"));
+            newFileName = System.getProperty("user.home")+"\\Documents\\JMail\\logs\\"+new SimpleDateFormat("yyyy-MM-dd-kk-mm-ss").format(new Date())+".log";
+            logFile = new BufferedWriter(new FileWriter(System.getProperty("user.home")+"\\Documents\\JMail\\logs\\latest.log"));
         } catch (IOException e) {
             reportError(null, e, 4);
         }
@@ -29,6 +29,7 @@ public class LogHandler extends Handler
     public void close() {
         try {
             logFile.close();
+            new File(System.getProperty("user.home")+"\\Documents\\JMail\\logs\\latest.log").renameTo(new File(newFileName));
         } catch (IOException e) {
             reportError(null, e, 3);
         }
@@ -48,7 +49,7 @@ public class LogHandler extends Handler
             return;
         try {
             logFile.write(sdf.format(new Date()));
-            if (record.getLevel()!=java.util.logging.Level.INFO)
+            if (record.getLevel().intValue() >  800)
                 logFile.write(record.getLevel().getName()+": ");
             logFile.write(s);
             this.flush();

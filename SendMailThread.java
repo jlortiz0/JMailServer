@@ -17,7 +17,10 @@ public class SendMailThread extends ServerThread
             output.close();
             input.close();
             socket.close();
-        } catch (IOException e) {}
+        } catch (IOException e) {
+            JMailServer.log.warning(e.toString());
+            JMailServer.log.warning("Error on closing SendMailThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
+        }
     }
     @Override
     public void run() {
@@ -29,7 +32,7 @@ public class SendMailThread extends ServerThread
                 close();
                 return;
             }
-            send(SendMail.get(this.socket.getInetAddress(), msg));
+            send(SendMail.get(socket.getInetAddress(), msg));
         }
     }
 }
