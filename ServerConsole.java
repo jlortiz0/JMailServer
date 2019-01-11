@@ -155,6 +155,8 @@ public class ServerConsole extends Thread
             } else {
                 new ProcessBuilder("clear").inheritIO().start().waitFor();
             }
-        } catch (IOException | InterruptedException e) {}
+        } catch (IOException | InterruptedException e) {
+            //TODO: Should this even be logged?
+        }
     }
 }

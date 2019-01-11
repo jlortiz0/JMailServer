@@ -84,6 +84,7 @@ public class ServerDaemon
             if (!e.getMessage().equals("socket closed")) {
                 System.out.println(e);
                 JMailServer.log.warning(e.toString());
+                JMailServer.log.warning("Error on closing ServerDaemon.");
             }
         }
         try {

@@ -81,5 +81,4 @@ public class JMailServer {
             out.write(buffer, 0, bytesRead);
         }
     }
-    //TODO: modify the files to use loggers
 }

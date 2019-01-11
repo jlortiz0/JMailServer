@@ -67,14 +67,14 @@ public class ServerThread extends Thread
             JMailServer.log.warning("Error on closing ServerThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
         }
     }
-    //TODO: What should be done if there is a 
+    //TODO: What should be done if there is an exception here?
     protected void send(String msg) {
         try {
             output.writeUTF(msg);
         } catch (IOException e) {
             System.out.println("Error sending data: "+e);
             JMailServer.log.warning(e.toString());
-            JMailServer.log.warning("Error sending data in SendMailThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
+            JMailServer.log.warning("Error sending data in "+this.getClass().getName()+" connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
         }
     }
     protected String receive() {
@@ -83,9 +83,9 @@ public class ServerThread extends Thread
         } catch (IOException e) {
             System.out.println("Error getting data: "+e);
             JMailServer.log.warning(e.toString());
-            JMailServer.log.warning("Error getting data in SendMailThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
+            JMailServer.log.warning("Error getting data in "+this.getClass().getName()+" connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
         }
-        return "";
+        return "ERROR";
     }
     protected void flush() {
         try {
@@ -93,7 +93,7 @@ public class ServerThread extends Thread
         } catch (IOException e) {
             System.out.println("Error flushing data: "+e);
             JMailServer.log.warning(e.toString());
-            JMailServer.log.warning("Error flushing data in SendMailThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
+            JMailServer.log.warning("Error flushing data in "+this.getClass().getName()+" connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
         }
     }
     
@@ -107,8 +107,6 @@ public class ServerThread extends Thread
         String usr;
         String pass;
         String filename;
-        boolean b;
-        Scanner sf;
         send("OK connect");
         while (true) {
             sc = new Scanner(receive());
@@ -119,11 +117,13 @@ public class ServerThread extends Thread
                         return;
                     case "VRFY":
                         usr = sc.next();
-                        b = false;
-                        if (!(usr.contains("\\") || usr.contains("/") || usr.contains("..")))
-                            if (new File(cUser+"\\..\\"+usr).isDirectory())
-                                b=true;
-                        send(String.valueOf(b));
+                        if (!(usr.contains("\\") || usr.contains("/") || usr.contains(".."))) {
+                            if (new File(cUser+"\\..\\"+usr).isDirectory()) {
+                                send("true");
+                                break;
+                            }
+                        }
+                        send("false");
                         break;
                     case "DEL":
                         filename = sc.nextLine().substring(1);
@@ -138,19 +138,20 @@ public class ServerThread extends Thread
                     case "MV":
                         filename = sc.next();
                         pass = sc.next();
-                        if (filename.contains(".."))
-                            break;
-                        if (pass.contains(".."))
+                        if (filename.contains("..") || pass.contains(".."))
                             break;
                         try {
                             Files.move(Paths.get(cUser+"\\mail\\"+filename), Paths.get(cUser+"\\mail\\"+pass));
-                        } catch (IOException e) {}
+                        } catch (IOException e) {
+                            //TODO: Log this
+                        }
                         break;
                     case "TREE":
                         try {
                             send(serialize(tree(new File(cUser+"\\mail\\"))));
                         } catch (IOException e) {
                             send("false");
+                            //TODO: Log this
                         }
                         break;
                     case "GET":
@@ -171,7 +172,6 @@ public class ServerThread extends Thread
                             send(pass);
                             break;
                         } else {
-                            //Shame on this statement for requiring a new variable
                             try (Scanner fil = new Scanner(new File(cUser+"\\mail\\"+filename))) {
                                 fil.useDelimiter("\\A");
                                 send(fil.next());
@@ -188,24 +188,30 @@ public class ServerThread extends Thread
                         try (Scanner file = new Scanner(new File(cUser+"\\pass.txt"))) {
                             if (!pass.equals(file.next())) {
                                 send("false");
+                                SendMail.send("SERVER", new File(cUser).getName()+"@localhost\nPasschange FAILURE\nA computer at IP address "+socket.getInetAddress().getHostAddress()+" just tried to change your password. If this was not you, contact us immediately.");
                                 break;
                             }
                         } catch (FileNotFoundException e) {
+                            //TODO: This may be fatal
                             send("false");
                             break;
                         }
                         try (FileOutputStream out = new FileOutputStream(new File(cUser+"\\pass.txt"), false)) {
                             out.write(filename.getBytes());
                         } catch (IOException e) {
+                            ///TODO: Log this. Also, if the file was opened, this may have destroyed some data.
                             send("false");
                             break;
                         }
                         send("true");
+                        SendMail.send("SERVER", new File(cUser).getName()+"@localhost\nPassword Changed\nYour password was just changed by a computer at IP address "+socket.getInetAddress().getHostAddress()+". If this was not you, contact us immediately.");
                         break;
                     case "NEW":
                         try {
                             Files.createDirectories(Paths.get(cUser+"\\mail\\"+sc.next()));
-                        } catch (IOException e) {}
+                        } catch (IOException e) {
+                            //TODO: Log this
+                        }
                         break;
                     case "DATA":
                         if (!(Boolean)JMailServer.get("sendmailremote")) {
@@ -235,11 +241,13 @@ public class ServerThread extends Thread
                         break;
                     case "VRFY":
                         usr = sc.next();
-                        b = false;
-                        if (!(usr.contains("\\") || usr.contains("/") || usr.contains("..")))
-                            if (new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr).isDirectory())
-                                b=true;
-                        send(String.valueOf(b));
+                        if (!(usr.contains("\\") || usr.contains("/") || usr.contains(".."))) {
+                            if (new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr).isDirectory()) {
+                                send("true");
+                                break;
+                            }
+                        }
+                        send("false");
                         break;
                     case "REG":
                         if (!(Boolean)JMailServer.get("allownewuser") || (new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\").list().length>(Integer)JMailServer.get("maxusers")) && (Integer)JMailServer.get("maxusers") > 1) {
@@ -302,8 +310,18 @@ public class ServerThread extends Thread
                             break;
                         }
                         pass = sc.next();
-                        try {
-                            sf = new Scanner(new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr+"\\pass.txt"));
+                        try (Scanner sf = new Scanner(new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr+"\\pass.txt"))) {
+                            if (!Blake.hash(sf.nextLine(), String.valueOf(this.nonce)).equals(pass)) {
+                                sf.close();
+                                logina++;
+                                if (logina>(Integer)JMailServer.get("logina") && (Integer)JMailServer.get("logina")>1) {
+                                    send("QUIT Too many login attempts!");
+                                    close();
+                                    return;
+                                }
+                                send("false");
+                                break;
+                            }
                         } catch (FileNotFoundException e) {
                             logina++;
                             if (logina>(Integer)JMailServer.get("logina") && (Integer)JMailServer.get("logina")>1) {
@@ -314,18 +332,6 @@ public class ServerThread extends Thread
                             send("false");
                             break;
                         }
-                        if (!Blake.hash(sf.nextLine(), String.valueOf(this.nonce)).equals(pass)) {
-                            sf.close();
-                            logina++;
-                            if (logina>(Integer)JMailServer.get("logina") && (Integer)JMailServer.get("logina")>1) {
-                                send("QUIT Too many login attempts!");
-                                close();
-                                return;
-                            }
-                            send("false");
-                            break;
-                        }
-                        sf.close();
                         this.cUser=System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr;
                         send("true");
                         loggedIn=true;
@@ -334,10 +340,12 @@ public class ServerThread extends Thread
                         try {
                             send(InetAddress.getLocalHost().getHostName());
                         } catch (UnknownHostException e) {
+                            //TODO: This may be fatal
                             send("Unknown JMailServer");
                         }
                         break;
                     case "SOFT":
+                        //TODO: Make this configurable
                         send("JMailServer Java 1.2 by jlortiz");
                         break;
                     default:

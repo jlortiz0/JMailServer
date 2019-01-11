@@ -98,6 +98,7 @@ public class SendMail {
             } catch (UnknownHostException e) {
                 responses.add(a+": badHost");
             } catch (IOException | InterruptedException e) {
+                //TODO: Log this, but log the one above as FINE
                 responses.add(a+": io");
                 System.out.println("Sendmail IO error: "+e);
             }
@@ -141,6 +142,7 @@ public class SendMail {
             f.write(("\n\n"+message).getBytes());
             f.flush();
         } catch (IOException e) {
+            //TODO: Log this
             System.out.println(e);
             return "write "+to;
         }

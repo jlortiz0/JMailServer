@@ -38,7 +38,6 @@ public class Blake {
             }
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
-            JMailServer.log.severe("SHA-256 is not supported!");
             System.out.println("FATAL: SHA-256 is not supported on your system!");
             System.exit(1);
         }
