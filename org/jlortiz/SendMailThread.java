@@ -1,6 +1,9 @@
+package org.jlortiz;
+
+import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.io.IOException;
+import java.util.logging.Level;
 /**
  * Write a description of class SendMailThread here.
  * 
@@ -12,6 +15,7 @@ public class SendMailThread extends ServerThread
     public SendMailThread(Socket sock) throws UnknownHostException,IOException {
         super(sock);
     }
+    @Override
     public void close() {
         try {
             output.close();
@@ -19,7 +23,7 @@ public class SendMailThread extends ServerThread
             socket.close();
         } catch (IOException e) {
             JMailServer.log.warning(e.toString());
-            JMailServer.log.warning("Error on closing SendMailThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress());
+            JMailServer.log.log(Level.WARNING, "Error on closing SendMailThread connected to {0} / {1}", new String[]{socket.getInetAddress().getHostName(), socket.getInetAddress().getHostAddress()});
         }
     }
     @Override

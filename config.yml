@@ -1,5 +1,5 @@
-logverbose: false
-logmax: 1024
+loglevel: INFO
+logkeep: 7
 blist:
  - 127.0.0.1
  - localhost

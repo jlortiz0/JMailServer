@@ -1,3 +1,5 @@
+package org.jlortiz;
+
 /*
  * Copyright (C) 2018 jlortiz
  *
@@ -19,11 +21,9 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Scanner;
-import java.util.HashSet;
+import java.util.*;
+import java.util.logging.Level;
+import static org.jlortiz.JMailServer.log;
 /**
  *
  * @author jlortiz
@@ -58,7 +58,7 @@ public class SendMail {
                 continue;
             }
             if (!servers.containsKey(a.split("@")[1]))
-                servers.put(a.split("@")[1], new ArrayList<String>());
+                servers.put(a.split("@")[1], new ArrayList<>());
             servers.get(a.split("@")[1]).add(a.split("@")[0]);
         }
         for (String a: servers.keySet()) {
@@ -98,17 +98,18 @@ public class SendMail {
             } catch (UnknownHostException e) {
                 responses.add(a+": badHost");
             } catch (IOException | InterruptedException e) {
-                //TODO: Log this, but log the one above as FINE
                 responses.add(a+": io");
-                System.out.println("Sendmail IO error: "+e);
+                log.warning(e.toString());
             }
         }
         responses.trimToSize();
         StringBuilder resp = new StringBuilder();
-        for (String a: responses) {
+        responses.stream().map((a) -> {
             resp.append(a);
+            return a;
+        }).forEachOrdered((_item) -> {
             resp.append("\n");
-        }
+        });
         return resp.toString();
     }
     public static String get(InetAddress addr, String s) {
@@ -142,8 +143,8 @@ public class SendMail {
             f.write(("\n\n"+message).getBytes());
             f.flush();
         } catch (IOException e) {
-            //TODO: Log this
-            System.out.println(e);
+            log.warning(e.toString());
+            log.log(Level.WARNING, "Error sending mail to {0}", to);
             return "write "+to;
         }
         return "true";

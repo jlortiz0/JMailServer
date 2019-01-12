@@ -1,6 +1,10 @@
+package org.jlortiz;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
+import static org.jlortiz.JMailServer.log;
 
 /**
  * @author jlortiz
@@ -28,7 +32,7 @@ public class ServerConsole extends Thread
                 if (pass.equals(JMailServer.get("adminpass")))
                     locked=false;
                 else 
-                    JMailServer.log.severe("Incorrect admin password given!");
+                    log.severe("Incorrect admin password given!");
                 continue;
             }
             System.out.print("> ");
@@ -46,8 +50,8 @@ public class ServerConsole extends Thread
                         ServerDaemon.stop();
                     } catch (IOException e) {
                         System.out.println("FATAL: The server will not stop! Will now crash!");
-                        JMailServer.log.severe(e.toString());
-                        JMailServer.log.severe("The server produced an exception while stopping! Will now crash.");
+                        log.severe(e.toString());
+                        log.severe("The server produced an exception while stopping! Will now crash.");
                         System.exit(1);
                     }
                     return;
@@ -60,12 +64,12 @@ public class ServerConsole extends Thread
                 case "ble":
                     System.out.println("Blacklist is now "+String.valueOf(!(Boolean)JMailServer.get("useblist")));
                     JMailServer.set("useblist", !(Boolean)JMailServer.get("useblist"));
-                    JMailServer.log.info("Blacklist "+ ((Boolean)JMailServer.get("useblist") ? "enabled" : "disabled"));
+                    log.log(Level.INFO, "Blacklist {0}", (Boolean)JMailServer.get("useblist") ? "enabled" : "disabled");
                     break;
                 case "wle":
                     System.out.println("Whitelist is now "+String.valueOf(!(Boolean)JMailServer.get("usewlist")));
                     JMailServer.set("usewlist", !(Boolean)JMailServer.get("usewlist"));
-                    JMailServer.log.info("Whitelist "+ ((Boolean)JMailServer.get("useblist") ? "enabled" : "disabled"));
+                    log.log(Level.INFO, "Whitelist {0}", (Boolean)JMailServer.get("useblist") ? "enabled" : "disabled");
                     break;
                 case "cls":
                 case "clear":
@@ -76,7 +80,7 @@ public class ServerConsole extends Thread
                         JMailServer.reloadCfg();
                         System.out.println("Reloaded the config file. Note that not all changes will take place immediately.");
                     } catch (IOException e) {
-                        JMailServer.log.severe("Reloading config file FAILED! Server is unstable!");
+                        log.severe("Reloading config file FAILED! Server is unstable!");
                         System.out.println("SEVERE: Reloading config failed! Server is now unstable!");
                     }
                     break;
@@ -88,7 +92,7 @@ public class ServerConsole extends Thread
                         JMailServer.flush();
                         System.out.println("Current config has been flushed to disk.");
                     } catch (IOException e) {
-                        JMailServer.log.severe("Saving config file failed! Corruption possible.");
+                        log.severe("Saving config file failed! Corruption possible.");
                         System.out.println("ERROR: Saving config failed! Please check the config file for corruption.");
                         break;
                     }
@@ -156,7 +160,8 @@ public class ServerConsole extends Thread
                 new ProcessBuilder("clear").inheritIO().start().waitFor();
             }
         } catch (IOException | InterruptedException e) {
-            //TODO: Should this even be logged?
+            log.warning(e.toString());
+            log.warning("Failed to clear screen!");
         }
     }
 }

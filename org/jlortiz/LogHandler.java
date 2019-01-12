@@ -1,8 +1,16 @@
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
-import java.io.*;
+package org.jlortiz;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 /**
  * Write a description of class LogHandler here.
@@ -17,12 +25,22 @@ public class LogHandler extends Handler
     private String newFileName;
     public LogHandler() {
         super();
+        if (JMailServer.log.getLevel()==Level.OFF)
+            return;
         try {
             newFileName = System.getProperty("user.home")+"\\Documents\\JMail\\logs\\"+new SimpleDateFormat("yyyy-MM-dd-kk-mm-ss").format(new Date())+".log";
             logFile = new BufferedWriter(new FileWriter(System.getProperty("user.home")+"\\Documents\\JMail\\logs\\latest.log"));
         } catch (IOException e) {
             reportError(null, e, 4);
         }
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.add(Calendar.DAY_OF_YEAR, 0-(Integer)JMailServer.get("logkeep"));
+        for (File f: new File(System.getProperty("user.home")+"\\Documents\\JMail\\logs\\latest.log").listFiles())
+            try {
+                if (cal.after(sdf.parse(f.getName())))
+                    f.delete();
+            } catch (ParseException e) {}
     }
     
     @Override
@@ -49,7 +67,7 @@ public class LogHandler extends Handler
             return;
         try {
             logFile.write(sdf.format(new Date()));
-            if (record.getLevel().intValue() >  800)
+            if (record.getLevel().intValue() > Level.INFO.intValue())
                 logFile.write(record.getLevel().getName()+": ");
             logFile.write(s);
             this.flush();

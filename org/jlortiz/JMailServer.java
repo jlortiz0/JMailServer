@@ -1,3 +1,5 @@
+package org.jlortiz;
+
 /*
  * Copyright (C) 2018 jlortiz
  *
@@ -16,8 +18,9 @@
  */
 
 import java.io.*;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.yaml.snakeyaml.Yaml;
 
@@ -42,10 +45,7 @@ public class JMailServer {
             return;
         }
         reloadCfg();
-        if ((Boolean)JMailServer.get("logverbose"))
-            log.setLevel(java.util.logging.Level.FINE);
-        else
-            log.setLevel(java.util.logging.Level.INFO);
+        log.setLevel(Level.parse((String)get("loglevel")));
         log.addHandler(new LogHandler());
         new ServerConsole().start();
         new ServerDaemon((Integer)get("port")).run();
@@ -66,9 +66,9 @@ public class JMailServer {
     }
     public static void reloadCfg() throws IOException {
         options = yml.load(new FileInputStream(new File(System.getProperty("user.home")+"\\Documents\\JMail\\config.yml")));
-        if ((Boolean)get("useblist") && ((List)get("blist")).size()==0)
+        if ((Boolean)get("useblist") && ((List)get("blist")).isEmpty())
             set("useblist", false);
-        if ((Boolean)get("usewlist") && ((List)get("wlist")).size()==0)
+        if ((Boolean)get("usewlist") && ((List)get("wlist")).isEmpty())
             set("usewlist", false);
         log.info("Config file reloaded.");
     }
