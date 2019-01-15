@@ -19,7 +19,7 @@ public class ServerDaemon
     private static final HashMap<String, ServerThread> sockets = new HashMap<>((Integer)JMailServer.get("maxconnections"));
     public ServerDaemon(int port) throws IOException {
         listener = new ServerSocket(port);
-        log.log(Level.INFO, "Started ServerDaemon on port {0}", String.valueOf(port));
+        log.info("Started ServerDaemon on port "+String.valueOf(port));
     }
     public static void stop() throws IOException {
         listener.close();

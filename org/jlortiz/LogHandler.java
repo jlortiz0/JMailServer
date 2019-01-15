@@ -22,13 +22,13 @@ public class LogHandler extends Handler
 {
     private BufferedWriter logFile;
     private static final SimpleDateFormat sdf = new SimpleDateFormat("[HH:mm:ss] ");
-    private String newFileName;
+    public final String newFileName;
     public LogHandler() {
         super();
+        newFileName = System.getProperty("user.home")+"\\Documents\\JMail\\logs\\"+new SimpleDateFormat("yyyy-MM-dd-kk-mm-ss").format(new Date())+".log";
         if (JMailServer.log.getLevel()==Level.OFF)
             return;
         try {
-            newFileName = System.getProperty("user.home")+"\\Documents\\JMail\\logs\\"+new SimpleDateFormat("yyyy-MM-dd-kk-mm-ss").format(new Date())+".log";
             logFile = new BufferedWriter(new FileWriter(System.getProperty("user.home")+"\\Documents\\JMail\\logs\\latest.log"));
         } catch (IOException e) {
             reportError(null, e, 4);
@@ -36,9 +36,9 @@ public class LogHandler extends Handler
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
         cal.add(Calendar.DAY_OF_YEAR, 0-(Integer)JMailServer.get("logkeep"));
-        for (File f: new File(System.getProperty("user.home")+"\\Documents\\JMail\\logs\\latest.log").listFiles())
+        for (File f: new File(System.getProperty("user.home")+"\\Documents\\JMail\\logs\\").listFiles())
             try {
-                if (cal.after(sdf.parse(f.getName())))
+                if (cal.getTime().after(sdf.parse(f.getName())))
                     f.delete();
             } catch (ParseException e) {}
     }
@@ -62,14 +62,16 @@ public class LogHandler extends Handler
     }
     @Override
     public void publish(LogRecord record) {
-        String s = record.getMessage();
-        if (s.isEmpty())
-            return;
         try {
+            if (record.getThrown()!=null) {
+                logFile.write(sdf.format(new Date()));
+                logFile.write(record.getThrown().toString());
+                logFile.newLine();
+            }
             logFile.write(sdf.format(new Date()));
             if (record.getLevel().intValue() > Level.INFO.intValue())
                 logFile.write(record.getLevel().getName()+": ");
-            logFile.write(s);
+            logFile.write(record.getMessage());
             this.flush();
             logFile.newLine();
         } catch (IOException e) {

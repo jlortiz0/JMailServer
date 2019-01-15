@@ -68,28 +68,25 @@ public class ServerThread extends Thread
             input.close();
             socket.close();
         } catch (IOException e) {
-            log.warning(e.toString());
-            log.log(Level.WARNING, "Error on closing ServerThread connected to {0} / {1}", new String[]{socket.getInetAddress().getHostName(), socket.getInetAddress().getHostAddress()});
+            log.log(Level.WARNING, "Error on closing ServerThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress(), e);
         }
     }
-    //TODO: There's probably a better way to log exceptions than this.
     protected void send(String msg) {
         if (socket.isClosed())
             return;
         try {
             output.writeUTF(msg);
         } catch (IOException e) {
-            log.warning(e.toString());
-            log.log(Level.WARNING, "Error sending data in {0} connected to {1} / {2}", new String[]{this.getClass().getName(), socket.getInetAddress().getHostName(), socket.getInetAddress().getHostAddress()});
+            log.log(Level.WARNING, "Error sending data in "+this.getClass().getName()+" connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress(), e);
             close();
         }
     }
     protected String receive() {
         try {
-            return input.readUTF();
+            if (!socket.isClosed())
+                return input.readUTF();
         } catch (IOException e) {
-            log.warning(e.toString());
-            log.log(Level.WARNING, "Error getting data in {0} connected to {1} / {2}", new String[]{this.getClass().getName(), socket.getInetAddress().getHostName(), socket.getInetAddress().getHostAddress()});
+            log.log(Level.WARNING, "Error getting data in "+this.getClass().getName()+" connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress(), e);
         }
         return "QUIT";
     }
@@ -99,8 +96,7 @@ public class ServerThread extends Thread
         try {
             output.flush();
         } catch (IOException e) {
-            log.warning(e.toString());
-            log.log(Level.WARNING, "Error flushing data in {0} connected to {1} / {2}", new String[]{this.getClass().getName(), socket.getInetAddress().getHostName(), socket.getInetAddress().getHostAddress()});
+            log.log(Level.WARNING, "Error flushing data in "+this.getClass().getName()+" connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress(), e);
             close();
         }
     }
@@ -150,8 +146,7 @@ public class ServerThread extends Thread
                         try {
                             Files.move(Paths.get(cUser+"\\mail\\"+filename), Paths.get(cUser+"\\mail\\"+pass));
                         } catch (IOException e) {
-                            log.warning(e.toString());
-                            log.log(Level.WARNING, "Failed to move {0}\\mail\\{1} to {2}\\mail\\{3}", new String[]{cUser, filename, cUser, pass});
+                            log.log(Level.WARNING, "Failed to move "+cUser+"\\mail\\"+filename+" to "+cUser+"\\mail\\"+pass, e);
                         }
                         break;
                     case "TREE":
@@ -159,8 +154,7 @@ public class ServerThread extends Thread
                             send(serialize(tree(new File(cUser+"\\mail\\"))));
                         } catch (IOException e) {
                             send("false");
-                            log.warning(e.toString());
-                            log.log(Level.WARNING, "Failed to make a tree in folder {0}\\mail\\", cUser);
+                            log.log(Level.WARNING, "Failed to make a tree in folder "+cUser+"\\mail\\", e);
                         }
                         break;
                     case "GET":
@@ -202,11 +196,10 @@ public class ServerThread extends Thread
                         } catch (FileNotFoundException e) {
                             log.log(Level.WARNING, "{0} password file was missing!", new File(cUser).getName());
                         }
-                        try (FileOutputStream out = new FileOutputStream(new File(cUser+"\\pass.txt"), false)) {
-                            out.write(filename.getBytes());
+                        try (PrintWriter out = new PrintWriter(cUser+"\\pass.txt")) {
+                            out.print(filename);
                         } catch (IOException e) {
-                            log.warning(e.toString());
-                            log.log(Level.WARNING, "Failed to change {0} password.", new File(cUser).getName());
+                            log.log(Level.WARNING, "Failed to change "+new File(cUser).getName()+" password.", e);
                             send("QUIT There was an unexpected error.\nYour password may not have been changed.\nIf you are unable to log in, please contact an admin.");
                             close();
                             return;
@@ -219,8 +212,7 @@ public class ServerThread extends Thread
                         try {
                             Files.createDirectories(Paths.get(cUser+"\\mail\\"+pass));
                         } catch (IOException e) {
-                            log.warning(e.toString());
-                            log.log(Level.WARNING, "Failed to create directory {0}", pass);
+                            log.log(Level.WARNING, "Failed to create directory "+pass, e);
                         }
                         break;
                     case "DATA":
@@ -291,7 +283,7 @@ public class ServerThread extends Thread
                             new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr+"\\mail").mkdir();
                             SendMail.send("SERVER", usr+"@localhost\nWelcome to "+InetAddress.getLocalHost().getHostName()+"\n"+JMailServer.get("welcomemsg"));
                         } catch (IOException e) {
-                            System.out.println(e);
+                            log.log(Level.WARNING, "Failed to create "+usr+" account.", e);
                             send("false");
                             new File(System.getProperty("user.home")+"\\Documents\\JMail\\users\\"+usr).delete();
                         }
@@ -350,7 +342,7 @@ public class ServerThread extends Thread
                         try {
                             send(InetAddress.getLocalHost().getHostName());
                         } catch (UnknownHostException e) {
-                            log.warning("The server was unable to find itself on the network!");
+                            log.log(Level.WARNING, "The server was unable to find itself on the network!", e);
                             send("Unknown JMailServer");
                         }
                         break;

@@ -46,11 +46,13 @@ public class JMailServer {
         }
         reloadCfg();
         log.setLevel(Level.parse((String)get("loglevel")));
-        log.addHandler(new LogHandler());
+        LogHandler h = new LogHandler();
+        log.addHandler(h);
         new ServerConsole().start();
         new ServerDaemon((Integer)get("port")).run();
         log.info("Server shutting down.");
-        log.getHandlers()[0].close();
+        h.close();
+        new File(System.getProperty("user.home")+"\\Documents\\JMail\\logs\\latest.log").renameTo(new File(h.newFileName));
     }
     public static Object get(String key) {
         return options.get(key);
