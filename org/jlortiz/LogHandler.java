@@ -38,8 +38,10 @@ public class LogHandler extends Handler
         cal.add(Calendar.DAY_OF_YEAR, 0-(Integer)JMailServer.get("logkeep"));
         for (File f: new File(System.getProperty("user.home")+"\\Documents\\JMail\\logs\\").listFiles())
             try {
-                if (cal.getTime().after(sdf.parse(f.getName())))
+                if (cal.getTime().after(new SimpleDateFormat("yyyy-MM-dd-kk-mm-ss").parse(f.getName().substring(0, f.getName().length()-4)))) {
                     f.delete();
+                    publish(new LogRecord(Level.INFO, "Deleted old log file "+f.getName()));
+                }
             } catch (ParseException e) {}
     }
     
