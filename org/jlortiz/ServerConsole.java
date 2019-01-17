@@ -138,7 +138,7 @@ public class ServerConsole extends Thread
                     if (sl.hasNext()) {
                         user = sl.next();
                         if (ServerDaemon.getSockets().containsKey(user)) {
-                            ServerDaemon.getSockets().get(user).close();
+                            ServerDaemon.getSockets().get(user).close(true);
                             ServerDaemon.getSockets().remove(user);
                         } else {
                             System.out.println("This IP is not connected!");

@@ -94,7 +94,7 @@ public class ServerDaemon
         try {
             while (!sockets.isEmpty())
                 if ((Boolean)JMailServer.get("shkick"))
-                    sockets.values().iterator().next().close();
+                    sockets.values().iterator().next().close(true);
                 else
                     sockets.values().iterator().next().join();
         } catch (InterruptedException e) {}

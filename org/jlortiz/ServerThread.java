@@ -61,7 +61,7 @@ public class ServerThread extends Thread
         input = new DataInputStream(socket.getInputStream());
         log.log(Level.FINE, "Opened {0} connected to {1} / {2}", new String[]{this.getClass().getName(), socket.getInetAddress().getHostName(), socket.getInetAddress().getHostAddress()});
     }
-    public void close() {
+    private void close() {
         ServerDaemon.remove(this.socket.getInetAddress().getHostAddress());
         try {
             output.close();
@@ -70,6 +70,9 @@ public class ServerThread extends Thread
         } catch (IOException e) {
             log.log(Level.WARNING, "Error on closing ServerThread connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress(), e);
         }
+    }
+    public void close(boolean b) {
+        close();
     }
     protected void send(String msg) {
         if (socket.isClosed())
@@ -86,7 +89,8 @@ public class ServerThread extends Thread
             if (!socket.isClosed())
                 return input.readUTF();
         } catch (IOException e) {
-            log.log(Level.WARNING, "Error getting data in "+this.getClass().getName()+" connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress(), e);
+            if (!e.getMessage().equals("Socket closed"))
+                log.log(Level.WARNING, "Error getting data in "+this.getClass().getName()+" connected to "+socket.getInetAddress().getHostName()+" / "+socket.getInetAddress().getHostAddress(), e);
         }
         return "QUIT";
     }

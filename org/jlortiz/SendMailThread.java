@@ -15,8 +15,7 @@ public class SendMailThread extends ServerThread
     public SendMailThread(Socket sock) throws UnknownHostException,IOException {
         super(sock);
     }
-    @Override
-    public void close() {
+    private void close() {
         try {
             output.close();
             input.close();
