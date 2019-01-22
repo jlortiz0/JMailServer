@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.*;
 import java.util.logging.Level;
 import static org.jlortiz.JMailServer.log;
@@ -143,12 +144,13 @@ public class ServerThread extends Thread
                             delDir(new File(cUser+"\\mail\\"+filename));
                         break;
                     case "MV":
-                        filename = sc.next();
-                        pass = sc.next();
+                        filename = sc.nextLine().substring(2);
+                        pass = sc.nextLine();
                         if (filename.contains("..") || pass.contains(".."))
                             break;
                         try {
                             Files.move(Paths.get(cUser+"\\mail\\"+filename), Paths.get(cUser+"\\mail\\"+pass));
+                        } catch (FileAlreadyExistsException e) {
                         } catch (IOException e) {
                             log.log(Level.WARNING, "Failed to move "+cUser+"\\mail\\"+filename+" to "+cUser+"\\mail\\"+pass, e);
                         }
