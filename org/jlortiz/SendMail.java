@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.logging.Level;
 import static org.jlortiz.JMailServer.log;
 /**
- *
+ * 
  * @author jlortiz
  */
 public class SendMail {
